@@ -1,7 +1,7 @@
 ```yaml
 name: Build LEVELUP APK
 
-on:
+'on':
   workflow_dispatch:
   push:
     branches:
@@ -23,12 +23,12 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "9.3.1"
+          gradle-version: '9.3.1'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
