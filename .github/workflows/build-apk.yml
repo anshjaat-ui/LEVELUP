@@ -24,26 +24,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.3.1'
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK packages
+        shell: bash
         run: |
           sdkmanager "platform-tools"
           sdkmanager "platforms;android-36"
           sdkmanager "build-tools;36.0.0"
 
       - name: Prepare app configuration
+        shell: bash
         run: |
           cp .env.example app/.env.example
           touch app/.env
 
       - name: Build debug APK
+        shell: bash
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Upload APK artifact
