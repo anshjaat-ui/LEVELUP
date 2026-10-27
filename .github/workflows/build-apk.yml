@@ -29,19 +29,41 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Configure Android SDK
+      - name: Locate Android SDK tools
         shell: bash
         run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
-          echo "/usr/local/lib/android/sdk/cmdline-tools/16.0/bin" >> "$GITHUB_PATH"
-          echo "/usr/local/lib/android/sdk/platform-tools" >> "$GITHUB_PATH"
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          mkdir -p "$SDK/cmdline-tools"
+          SDKMANAGER="$(find "$SDK/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1 || true)"
+
+          if [ -z "$SDKMANAGER" ]; then
+            cd "$RUNNER_TEMP"
+            curl -fL --retry 3 \
+              https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip \
+              -o android-command-line-tools.zip
+            mkdir -p "$RUNNER_TEMP/android-cli-unpack" "$SDK/cmdline-tools/latest"
+            unzip -q android-command-line-tools.zip -d "$RUNNER_TEMP/android-cli-unpack"
+            cp -a "$RUNNER_TEMP/android-cli-unpack/cmdline-tools/." "$SDK/cmdline-tools/latest/"
+            SDKMANAGER="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          fi
+
+          test -x "$SDKMANAGER"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
 
       - name: Install Android SDK packages
         shell: bash
         run: |
-          sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools"
-          sdkmanager --sdk_root="$ANDROID_HOME" "platforms;android-36"
-          sdkmanager --sdk_root="$ANDROID_HOME" "build-tools;36.0.0"
+          set -euo pipefail
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
 
       - name: Generate debug keystore
         shell: bash
