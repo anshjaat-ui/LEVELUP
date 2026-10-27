@@ -1,0 +1,6 @@
+{
+  "name": "LEVELUP",
+  "description": "Premium natural productivity app with tasks, habits, focus timer, and subtle rewards",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
